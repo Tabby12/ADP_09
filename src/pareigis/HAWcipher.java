@@ -12,23 +12,12 @@ public class HAWcipher {
     System.out.println("session key = " + base64Encode(sessionkey));
     System.out.println("cipher session key = " + base64Encode(cipheredsessionkey));
   }
-  
-
-  public byte[] right;
-  
-  public byte[] left;
 
   final int OFFSET = 16;
-  
-
 
   byte[] sessionkey;
   
-
-
   byte[] cipheredsessionkey;
-  
-
 
   public String encrypt(String s, RSA rsa)
   {
@@ -46,16 +35,34 @@ public class HAWcipher {
     System.arraycopy(cipheredsessionkey, 0, out, 0, 16);
     return base64Encode(out);
   }
-  
 
-
-
-
-
-
-
-
-
+  public String decrypt(String s, RSA rsa)
+		  throws BoundException
+  {
+	  byte[] in = base64Decode(s);
+	  if (in.length <= 16) {
+		  throw new BoundException("Cipher text has " + in.length + " Bytes. At least " + 16 + " Bytes expected.");
+	  }
+	  byte[] out = new byte[in.length - 16];
+	  
+	  
+	  cipheredsessionkey = new byte[16];
+	  System.arraycopy(in, 0, cipheredsessionkey, 0, 16);
+	  try {
+		  sessionkey = BigInt2Byte(rsa.decipherRSA(Byte2BigInt(cipheredsessionkey)), 8);
+	  } catch (BoundException e) {
+		  e.printStackTrace();
+		  throw e;
+	  }
+	  for (int i = 16; i < in.length; i += 16) {
+		  if (i + 16 > in.length) {
+			  throw new BoundException("Ciphertext has " + in.length + " Bytes. Expecting multiple of " + 16 + ".");
+		  }
+		  byte[] block = blockdecrypt(in, i, sessionkey);
+		  System.arraycopy(block, 0, out, i - 16, 16);
+	  }
+	  return new String(out);
+  }
 
   private byte[] blockencrypt(byte[] b, int start, byte[] key)
   {
@@ -85,44 +92,10 @@ public class HAWcipher {
     return out;
   }
   
-
-
-
-
-
-
-  public String decrypt(String s, RSA rsa)
-    throws BoundException
-  {
-    byte[] in = base64Decode(s);
-    if (in.length <= 16) {
-      throw new BoundException("Cipher text has " + in.length + " Bytes. At least " + 16 + " Bytes expected.");
-    }
-    byte[] out = new byte[in.length - 16];
-    
-
-    cipheredsessionkey = new byte[16];
-    System.arraycopy(in, 0, cipheredsessionkey, 0, 16);
-    try {
-      sessionkey = BigInt2Byte(rsa.decipherRSA(Byte2BigInt(cipheredsessionkey)), 8);
-    } catch (BoundException e) {
-      e.printStackTrace();
-      throw e;
-    }
-    for (int i = 16; i < in.length; i += 16) {
-      if (i + 16 > in.length) {
-        throw new BoundException("Ciphertext has " + in.length + " Bytes. Expecting multiple of " + 16 + ".");
-      }
-      byte[] block = blockdecrypt(in, i, sessionkey);
-      System.arraycopy(block, 0, out, i - 16, 16);
-    }
-    return new String(out);
-  }
-  
   private FeistelBlock feistelRound(FeistelBlock in, byte[] key) {
-    FeistelBlock fout = new FeistelBlock();
-    left = right;
-    right = xorWithKey(left, F(right, key));
+    FeistelBlock fout = in;
+    fout.left = fout.right;
+    fout.right = xorWithKey(fout.left, F(fout.right, key));
     return fout;
   }
   
@@ -159,15 +132,19 @@ public class HAWcipher {
     return out;
   }
   
-  final class FeistelBlock { public byte[] left;
+  final class FeistelBlock {
+	public byte[] left;
     public byte[] right;
     
-    public FeistelBlock(byte[] b, int start) { left = java.util.Arrays.copyOfRange(b, start, start + 8);
+    public FeistelBlock(byte[] b, int start) { 
+      left = java.util.Arrays.copyOfRange(b, start, start + 8);
       right = java.util.Arrays.copyOfRange(b, start + 8, start + 16);
     }
     
-
-    public FeistelBlock() {}
+    public FeistelBlock() {
+    	left = new byte[BLOCKSIZE/2];
+		right = new byte[BLOCKSIZE/2];
+    }
     
     public void print()
     {

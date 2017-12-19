@@ -1,4 +1,4 @@
-package pareigis;
+package p;
 
 import java.awt.Color;
 import javax.swing.JButton;

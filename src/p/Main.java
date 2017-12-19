@@ -1,4 +1,4 @@
-package pareigis;
+package p;
 
 public class Main {
   public Main() {}

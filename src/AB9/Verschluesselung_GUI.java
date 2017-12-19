@@ -1,6 +1,5 @@
 package AB9;
 
-import java.awt.Color;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -12,16 +11,21 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import p.HAWcipher;
 
 public class Verschluesselung_GUI{
 	
-	public Verschluesselung_GUI(Stage primaryStage,RSA_Algorithmus myRSA) {
+	RSA_Algorithmus yourRSA;
+	
+	public Verschluesselung_GUI(Stage primaryStage,RSA_Algorithmus myRSA, Hybride_Verschluesselung hv) {
 		
 		primaryStage.setTitle("Kryptomaster 6000");
 		
 		GridPane contentPane = new GridPane();
 		
-		Scene scene = new Scene(contentPane,600,400);
+		Scene scene = new Scene(contentPane,1000,800);
+		
+
 		
 		Label prim1 = new Label("1. Primzahl =");
 		Label prim2 = new Label("2. Primzahl =");
@@ -29,6 +33,26 @@ public class Verschluesselung_GUI{
 		Label PrivateKey = new Label("Private Key =");
 		Label modulusN = new Label("N =");
 		Label phiVonN = new Label("Phi =");
+		Label publicKeyGet = new Label("Erhaltener Public Key:");
+		
+		TextArea gottenPubKey = new TextArea();
+		gottenPubKey.setPrefHeight(20);
+		gottenPubKey.setPrefWidth(100);
+		
+		Label actPubKey = new Label("Public Key =");
+		Label actModN = new Label("N =");
+		
+		Button activateKeyBtn = new Button("Aktiviere Public Key");
+		activateKeyBtn.setOnAction(new EventHandler<ActionEvent>() {
+			
+			@Override
+			public void handle(ActionEvent arg0) {
+				yourRSA = new RSA_Algorithmus();
+				yourRSA.erzeugeRSAmitPubKey(gottenPubKey.getText());
+				actPubKey.setText("Public Key = " + yourRSA.getPublicKey());
+				actModN.setText("N = " + yourRSA.getModulusN() );
+			}
+		});
 		
 		VBox rsaPaneLeft = new VBox();
 		rsaPaneLeft.setPadding(new Insets(10));
@@ -41,6 +65,9 @@ public class Verschluesselung_GUI{
 		rsaPaneLeft.getChildren().add(phiVonN);
 		rsaPaneLeft.getChildren().add(publicKey);
 		rsaPaneLeft.getChildren().add(PrivateKey);
+		rsaPaneLeft.getChildren().add(publicKeyGet);
+		rsaPaneLeft.getChildren().add(gottenPubKey);
+		rsaPaneLeft.getChildren().add(activateKeyBtn);
 		
 		Label publicKeyForFriend = new Label("Public Key zum weitergeben:");
 		
@@ -65,43 +92,42 @@ public class Verschluesselung_GUI{
 			}
 		});
 		
-		Label publicKeyGet = new Label("Erhaltener Public Key:");
-		
-		TextArea gottenPubKey = new TextArea();
-		gottenPubKey.setPrefHeight(20);
-		gottenPubKey.setPrefWidth(100);
-		
-		Button activateKeyBtn = new Button("Aktiviere Public Key");
-		activateKeyBtn.setOnAction(new EventHandler<ActionEvent>() {
-			
-			@Override
-			public void handle(ActionEvent arg0) {
-
-			}
-		});
+		Label gabFiller = new Label();
+		gabFiller.setPrefHeight(55);
 		
 		VBox rsaPaneRight = new VBox();
 		rsaPaneRight.setPadding(new Insets(10));
 		rsaPaneRight.setSpacing(8);
 		rsaPaneRight.setPrefHeight(150);
-		rsaPaneRight.setPrefWidth(250);
+		rsaPaneRight.setPrefWidth(300);
 		rsaPaneRight.getChildren().add(publicKeyForFriend);
 		rsaPaneRight.getChildren().add(createdPubKey);
 		rsaPaneRight.getChildren().add(createKeyBtn);
-		rsaPaneRight.getChildren().add(publicKeyGet);
-		rsaPaneRight.getChildren().add(gottenPubKey);
-		rsaPaneRight.getChildren().add(activateKeyBtn);
+		rsaPaneRight.getChildren().add(gabFiller);
+		rsaPaneRight.getChildren().add(actPubKey);
+		rsaPaneRight.getChildren().add(actModN);
 		
-		Label zuVerschluesseln = new Label("-----Zu Verschlüsselnder Text-----");
+		Label zuVerschluesseln = new Label("-----Zu VerschlÃ¼sselnder Text-----");
+		Label VerSessionKey = new Label("Session Key =");
 		
-		Button verschluesselnBtn = new Button("Verschlüsseln");
+		TextArea textAreaVerschluesselt = new TextArea();
+		textAreaVerschluesselt.setPrefHeight(40);
+		textAreaVerschluesselt.setPrefWidth(100);
 		
 		TextArea textAreaVerschluesseln = new TextArea();
 		textAreaVerschluesseln.setPrefHeight(40);
 		textAreaVerschluesseln.setPrefWidth(100);
-		TextArea textAreaVerschluesselt = new TextArea();
-		textAreaVerschluesselt.setPrefHeight(40);
-		textAreaVerschluesselt.setPrefWidth(100);
+		
+		Button verschluesselnBtn = new Button("VerschlÃ¼sseln");
+		verschluesselnBtn.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				textAreaVerschluesselt.setText(hv.verschluesseln(textAreaVerschluesseln.getText(), yourRSA));
+				VerSessionKey.setText("Session Key= " + hv.Byte2BigInt(hv.sessionkey));
+			}
+		});
+		
 		
 		VBox verschluesselnPane = new VBox();
 		verschluesselnPane.setPadding(new Insets(10));
@@ -109,21 +135,32 @@ public class Verschluesselung_GUI{
 		verschluesselnPane.setPrefHeight(200);
 		verschluesselnPane.setPrefWidth(350);
 		verschluesselnPane.getChildren().add(zuVerschluesseln);
+		verschluesselnPane.getChildren().add(VerSessionKey);
 		verschluesselnPane.getChildren().add(textAreaVerschluesseln);
 		verschluesselnPane.getChildren().add(verschluesselnBtn);
 		verschluesselnPane.getChildren().add(textAreaVerschluesselt);
 		
-		Label zuEntschluesseln = new Label("-----Zu Entschlüsselnder Text-----");
-		Button entschluesselnBtn = new Button("Entschlüsseln");
+		Label zuEntschluesseln = new Label("-----Zu EntschlÃ¼sselnder Text-----");
+		Label EntSessionKey = new Label("Session Key =");
 		TextArea textAreaEntschluesseln = new TextArea();
 		TextArea textAreaEntschluesselt = new TextArea();
-		
+		Button entschluesselnBtn = new Button("EntschlÃ¼sseln");
+		entschluesselnBtn.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				textAreaEntschluesselt.setText(hv.entschluesseln(textAreaEntschluesseln.getText(), myRSA));
+		        EntSessionKey.setText("session key = " + Hybride_Verschluesselung.Byte2BigInt(hv.sessionkey));
+			}
+		});
+			
 		VBox entschluesselnPane = new VBox();
 		entschluesselnPane.setPadding(new Insets(10));
 		entschluesselnPane.setSpacing(8);
 		entschluesselnPane.setPrefHeight(200);
 		entschluesselnPane.setPrefWidth(600);
 		entschluesselnPane.getChildren().add(zuEntschluesseln);
+		entschluesselnPane.getChildren().add(EntSessionKey);
 		entschluesselnPane.getChildren().add(textAreaEntschluesseln);
 		entschluesselnPane.getChildren().add(entschluesselnBtn);
 		entschluesselnPane.getChildren().add(textAreaEntschluesselt);

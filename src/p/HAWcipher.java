@@ -1,4 +1,4 @@
-package pareigis;
+package p;
 
 import java.math.BigInteger;
 

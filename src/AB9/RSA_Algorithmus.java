@@ -9,13 +9,13 @@ import java.util.Random;
 public class RSA_Algorithmus {
 	
 	/**
-	 * Erste zufällig erzeugte Primzahl.
+	 * Erste zufï¿½llig erzeugte Primzahl.
 	 */
 	private BigInteger prim1;
 	
 
 	/**
-	 * Zweite zufällig erzeugte Primzahl.
+	 * Zweite zufï¿½llig erzeugte Primzahl.
 	 */
 	private BigInteger prim2;
 	
@@ -30,18 +30,18 @@ public class RSA_Algorithmus {
 	private BigInteger phiVonN;
 	
 	/**
-	 * Öffentlicher Schlüssel.
+	 * ï¿½ffentlicher Schlï¿½ssel.
 	 */
 	private BigInteger publicKey;
 	
 	/**
-	 * Privater Schlüssel.
+	 * Privater Schlï¿½ssel.
 	 */
 	private BigInteger privateKey;
 
 	public String ErzeugeKeys(int bytelength)
 	{
-		//Zufällige primzahlen erzeugen
+		//Zufï¿½llige primzahlen erzeugen
 		prim1 = BigInteger.probablePrime(64, new Random());
 		prim2 = BigInteger.probablePrime(64, new Random());
 		
@@ -92,6 +92,44 @@ public class RSA_Algorithmus {
 			this.d = d;this.s = s;this.t = t;
 		}
 	}
+	public void erzeugeRSAmitPubKey(String yourPubKey){ 
+		byte[] pubkeyall = Hybride_Verschluesselung.base64Decode(yourPubKey);
+		byte[] pubkeykey = new byte[8];
+		byte[] pubkeymod = new byte[16];
+		
+		if ((pubkeyall.length < 24) && (pubkeyall.length >= 8)) {
+			java.util.Arrays.fill(pubkeymod, (byte)57);
+			System.arraycopy(pubkeyall, 0, pubkeykey, 0, 8);
+			publicKey = Hybride_Verschluesselung.Byte2BigInt(pubkeykey);
+			modulusN = BigInteger.ZERO;
+			
+		}
+		if (pubkeyall.length < 8) {
+			publicKey = BigInteger.ZERO;
+			modulusN = BigInteger.ZERO;
+			
+		}
+		if (pubkeyall.length > 24) {
+			System.arraycopy(pubkeyall, 0, pubkeykey, 0, 8);
+			System.arraycopy(pubkeyall, 8, pubkeymod, 0, 16);
+			publicKey = Hybride_Verschluesselung.Byte2BigInt(pubkeykey);
+			modulusN = Hybride_Verschluesselung.Byte2BigInt(pubkeymod);
+		}
+	
+		System.arraycopy(pubkeyall, 0, pubkeykey, 0, 8);
+		System.arraycopy(pubkeyall, 8, pubkeymod, 0, 16);
+		publicKey = Hybride_Verschluesselung.Byte2BigInt(pubkeykey);
+		modulusN = Hybride_Verschluesselung.Byte2BigInt(pubkeymod);
+	}
+	
+		public BigInteger encipherRSA(BigInteger in) {
+		return in.modPow(publicKey, modulusN);
+		}
+	
+		public BigInteger decipherRSA(BigInteger in){
+			System.out.println("Private Key: " + privateKey + "N: " + modulusN);
+			return in.modPow(privateKey, modulusN);
+		}
 	
 	/**
 	 * Getter.
@@ -119,48 +157,6 @@ public class RSA_Algorithmus {
 	public BigInteger getPrivateKey() {
 		return privateKey;
 	}
-	
-	
-	
 	  
-//	  public void createRSAwithPubKey(String hispubkey) throws BoundException { byte[] pubkeyall = HAWcipher.base64Decode(hispubkey);
-//	    byte[] pubkeykey = new byte[8];
-//	    byte[] pubkeymod = new byte[16];
-//	    if ((pubkeyall.length < 24) && (pubkeyall.length >= 8)) {
-//	      java.util.Arrays.fill(pubkeymod, (byte)57);
-//	      System.arraycopy(pubkeyall, 0, pubkeykey, 0, 8);
-//	      publickey = HAWcipher.Byte2BigInt(pubkeykey);
-//	      modulus = BigInteger.ZERO;
-//	      throw new BoundException("Public Key has " + pubkeyall.length + " Bytes. Expected are 24 Bytes. The modulus will be set to zero.");
-//	    }
-//	    if (pubkeyall.length < 8) {
-//	      publickey = BigInteger.ZERO;
-//	      modulus = BigInteger.ZERO;
-//	      throw new BoundException("Public Key has " + pubkeyall.length + " Bytes. Expected are 24 Bytes. Both key and modulus will be set to zero.");
-//	    }
-//	    if (pubkeyall.length > 24) {
-//	      System.arraycopy(pubkeyall, 0, pubkeykey, 0, 8);
-//	      System.arraycopy(pubkeyall, 8, pubkeymod, 0, 16);
-//	      publickey = HAWcipher.Byte2BigInt(pubkeykey);
-//	      modulus = HAWcipher.Byte2BigInt(pubkeymod);
-//	      throw new BoundException("Public Key has " + pubkeyall.length + " Bytes. Expected are 24 Bytes. Key and modulus will be set using the first 24 Bytes.");
-//	    }
-//	    
-//	    System.arraycopy(pubkeyall, 0, pubkeykey, 0, 8);
-//	    System.arraycopy(pubkeyall, 8, pubkeymod, 0, 16);
-//	    publickey = HAWcipher.Byte2BigInt(pubkeykey);
-//	    modulus = HAWcipher.Byte2BigInt(pubkeymod);
-//	  }
-//	  
-//	  public BigInteger encipherRSA(BigInteger in) {
-//	    return in.modPow(publickey, modulus);
-//	  }
-//	  
-//	  public BigInteger decipherRSA(BigInteger in) throws BoundException {
-//	    if ((modulus == null) || (privatekey == null) || (modulus == BigInteger.ZERO)) {
-//	      throw new BoundException("private key = " + privatekey + ", N = " + modulus + ". Expecting actual numbers.");
-//	    }
-//	    return in.modPow(privatekey, modulus);
-//	  }
 
 }

@@ -2,7 +2,9 @@ package pareigis;
 
 import java.math.BigInteger;
 
-public class RSA { public BigInteger prime1;
+public class RSA { 
+	
+  public BigInteger prime1;
   public BigInteger prime2;
   public BigInteger modulus;
   public BigInteger phi;
